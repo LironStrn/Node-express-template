@@ -32,8 +32,6 @@ app.post(
 // All endpoints after this point will require an active session
 //app.use('/api/*', shopify.validateAuthenticatedSession());
 
-// Add a simple test endpoint
-
 app.use(express.json());
 
 const pool = mysql.createPool({
@@ -43,14 +41,7 @@ const pool = mysql.createPool({
 	database: 'boa_ideas_db',
 });
 
-app.get('/api', (req, res) => {
-	console.log('Test endpoint hit');
-	res.json({ message: 'Test successful', timestamp: new Date().toISOString() });
-});
-
 app.get('/api/get', async (req, res) => {
-	console.log('Test endpoint hit 2');
-	console.log(req.query.customerId);
 
 	const customerId = req.query.customerId;
 
@@ -63,7 +54,10 @@ app.get('/api/get', async (req, res) => {
 		const values = [customerId];
 
 		const result = await pool.query(query, values);
-		console.log(result[0][0].cart_data);
+
+		if(result[0].length ===0){
+			res.json({ message: 'Cart not found', timestamp: new Date().toISOString(), cart: result[0] });
+		}
 		res.json({ message: 'Fetch cart successful', timestamp: new Date().toISOString(), cart: result[0][0].cart_data });
 	} catch (error) {
 		console.log(error);
@@ -71,7 +65,7 @@ app.get('/api/get', async (req, res) => {
 });
 
 app.post('/api/save', async (req, res) => {
-	console.log('Test endpoint hit 3');
+
 	try {
 		const { customerId, cart } = req.body;
 
@@ -94,15 +88,6 @@ app.post('/api/save', async (req, res) => {
 		console.error('Error handling request:', err);
 		res.status(500).json({ err: 'Internal server error' });
 	}
-
-
-	// try {
-	// 	const [rows] = await pool.query('SELECT 1 + 1 AS result');
-	// 	console.log('Connection successful!:', rows[0].result);
-	// } catch (error) {
-	// 	console.error('Connection failed:', error);
-	// }
-
 
 });
 

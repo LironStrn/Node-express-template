@@ -29,12 +29,18 @@ function Extension() {
   const [msg, setMessage] = useState('');
 
   const addProducts = (selected) => {
+    setMessage('');
     setProducts(selected);
   }
 
   const saveCart = async () => {
     const url = `${process.env.APP_URL}/api/save` ;
     
+    console.log('save cart', selectedProducts);
+    if(selectedProducts.length === 0) {
+        setMessage('Please select products to save');
+        return;
+    }
     const cartArray = selectedProducts.map((prodId) => {
       const productLine = lines.current.find((p) => p.merchandise.id === prodId);
       return productLine ? {id: prodId, quantity: productLine.quantity} : null;
