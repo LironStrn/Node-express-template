@@ -1,6 +1,7 @@
 import { join } from 'path';
 import { readFileSync } from 'fs';
 import express from 'express';
+import mysql from 'mysql2/promise';
 import serveStatic from 'serve-static';
 
 import shopify from './shopify.js';
@@ -29,9 +30,83 @@ app.post(
 );
 
 // All endpoints after this point will require an active session
-app.use('/api/*', shopify.validateAuthenticatedSession());
+//app.use('/api/*', shopify.validateAuthenticatedSession());
+
+// Add a simple test endpoint
 
 app.use(express.json());
+
+const pool = mysql.createPool({
+	host: 'localhost',
+	user: 'root',
+	password: '',
+	database: 'boa_ideas_db',
+});
+
+app.get('/api', (req, res) => {
+	console.log('Test endpoint hit');
+	res.json({ message: 'Test successful', timestamp: new Date().toISOString() });
+});
+
+app.get('/api/get', async (req, res) => {
+	console.log('Test endpoint hit 2');
+	console.log(req.query.customerId);
+
+	const customerId = req.query.customerId;
+
+	if (!customerId) {
+		return res.status(400).json({ error: "Customer ID is required" });
+	}
+
+	try {
+		const query = `SELECT * FROM saved_carts WHERE customer_gid = ?`;
+		const values = [customerId];
+
+		const result = await pool.query(query, values);
+		console.log(result[0][0].cart_data);
+		res.json({ message: 'Fetch cart successful', timestamp: new Date().toISOString(), cart: result[0][0].cart_data });
+	} catch (error) {
+		console.log(error);
+	}
+});
+
+app.post('/api/save', async (req, res) => {
+	console.log('Test endpoint hit 3');
+	try {
+		const { customerId, cart } = req.body;
+
+		if (!customerId || !Array.isArray(cart)) {
+			return res.status(400).json({ error: 'Invalid request data' });
+		}
+
+		const cartData = JSON.stringify(cart);
+
+		const query = `
+            INSERT INTO saved_carts (customer_gid, cart_data)
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE
+                cart_data = VALUES(cart_data);
+        `;
+
+		await pool.execute(query, [customerId, cartData]);
+		res.status(200).json({ message: 'Cart saved successfully' });
+	} catch (err) {
+		console.error('Error handling request:', err);
+		res.status(500).json({ err: 'Internal server error' });
+	}
+
+
+	// try {
+	// 	const [rows] = await pool.query('SELECT 1 + 1 AS result');
+	// 	console.log('Connection successful!:', rows[0].result);
+	// } catch (error) {
+	// 	console.error('Connection failed:', error);
+	// }
+
+
+});
+
+
 
 app.use(serveStatic(STATIC_PATH, { index: false }));
 
