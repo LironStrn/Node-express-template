@@ -1,8 +1,6 @@
 import {
   reactExtension,
-  Banner,
   BlockStack,
-  Checkbox,
   Text,
   Button,
   Choice,
@@ -36,7 +34,6 @@ function Extension() {
   const saveCart = async () => {
     const url = `${process.env.APP_URL}/api/save` ;
     
-    console.log('save cart', selectedProducts);
     if(selectedProducts.length === 0) {
         setMessage('Please select products to save');
         return;
@@ -45,7 +42,6 @@ function Extension() {
       const productLine = lines.current.find((p) => p.merchandise.id === prodId);
       return productLine ? {id: prodId, quantity: productLine.quantity} : null;
     }).filter(Boolean);
-    console.log(cartArray);
     
     const data = {
       customerId: buyerIdentity.customer.current.id,
@@ -65,7 +61,6 @@ function Extension() {
         const result = await response.json();
         setMessage('Cart saved successfully!');
         setTimeout(() => setMessage(''), 3000);
-        console.log("Response from backend:", result);
       } else {
         console.error("Failed to send data", response.status);
       }
@@ -94,12 +89,7 @@ function Extension() {
         })}
 
       </ChoiceList>
-      <Button
-        onPress={() => {
-          console.log('onPress event');
-          saveCart();
-        }}
-      >
+      <Button onPress={() => {saveCart();}}>
         Save Cart
       </Button>
       
