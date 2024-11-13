@@ -26,6 +26,7 @@ function Extension() {
   const { lines, buyerIdentity } = useApi();
 
   const [selectedProducts, setProducts] = useState([]);
+  const [msg, setMessage] = useState('');
 
   const addProducts = (selected) => {
     setProducts(selected);
@@ -56,6 +57,8 @@ function Extension() {
 
       if (response.ok) {
         const result = await response.json();
+        setMessage('Cart saved successfully!');
+        setTimeout(() => setMessage(''), 3000);
         console.log("Response from backend:", result);
       } else {
         console.error("Failed to send data", response.status);
@@ -70,6 +73,7 @@ function Extension() {
   // 3. Render a UI
   return (
     <BlockStack border={"dotted"} padding={"tight"}>
+      <Text size="large">Save your cart</Text>
       <ChoiceList
         name="save-products-list"
         onChange={(value) => addProducts(value)}
@@ -92,10 +96,8 @@ function Extension() {
       >
         Save Cart
       </Button>
-
-      {/* <Checkbox onChange={onCheckboxChange}>
-        {translate("iWouldLikeAFreeGiftWithMyOrder")}
-      </Checkbox> */}
+      
+      <Text>{msg}</Text>
     </BlockStack>
   );
 
