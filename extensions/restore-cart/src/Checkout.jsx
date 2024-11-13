@@ -22,7 +22,13 @@ function Extension() {
   const applyAttributeChange = useApplyAttributeChange();
 
   const { lines, buyerIdentity } = useApi();
-
+  if(buyerIdentity.customer.current == undefined) {
+    return (
+      <BlockStack border={"dotted"} padding={"tight"}>
+        <Text>Please login or register to save your cart</Text>
+      </BlockStack>
+    );
+  }
   const [selectedProducts, setProducts] = useState([]);
   const [msg, setMessage] = useState('');
 
